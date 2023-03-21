@@ -1,23 +1,18 @@
-import { courseData } from "../courseData";
+import { getDbConnection } from "../db";
 
 export const postCourseRoute = {
-    path: '/api/course',
-    method: 'post',
-    handler: (req, res) => {
-
-        const { title, description, estimatedTime } = req.body;
-        const id = Math.floor(process.uptime());
-        const data = {
-            id: id,
-            title: title,
-            description: description,
-            estimatedTime: estimatedTime,
-        }
-        courseData.push(data);
-        res.status(201).json({
-            message: 'Course created successfully',
-            course: data,
-        });
-
-    },
+  path: "/api/course",
+  method: "post",
+  handler: async (req, res) => {
+    const db = getDbConnection("courses");
+    const result = await db.collection("courses").insertOne(req.body);
+    const insertedCourse = await db
+      .collection("courses")
+      .findOne({ _id: result.insertedId });
+    console.log(result);
+    res.status(201).json({
+      message: "Course created successfully",
+      course: insertedCourse,
+    });
+  },
 };

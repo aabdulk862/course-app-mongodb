@@ -1,9 +1,11 @@
-import { courseData } from "../courseData";
-
+import { getDbConnection } from "../db";
 export const getCoursesRoute = {
-    path: '/api/course',
-    method: 'get',
-    handler: (req, res) => {
-        res.status(200).send(courseData);
-    },
+  path: "/api/course",
+  method: "get",
+  handler: async (req, res) => {
+    const db = getDbConnection("courses");
+    const result = await db.collection("courses").find().toArray();
+    console.log(result);
+    res.status(200).send(result);
+  },
 };

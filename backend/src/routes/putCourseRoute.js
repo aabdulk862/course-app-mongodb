@@ -1,35 +1,27 @@
-//delete a course
-
-// Compare this snippet from backend/src/routes/deleteCourseRoute.js:
-import { courseData } from "../courseData";
-
+import { ObjectId } from "mongodb";
+import { getDbConnection } from "../db";
 export const putCourseRoute = {
-    path: '/api/course/:id',
-    method: 'put',
-    handler: (req, res) => {
-        const id = req.params.id;
-        const course = courseData.find((course) => course.id === parseInt(id));
-
-        if (!course) {
-            res.status(404).json({
-                message: 'Course not found'
-
-            });
-        }
-
-        const index = courseData.indexOf(course);
-
-        const { title, description, estimatedTime } = req.body;
-        const data = {
-            id: parseInt(id),
-            title: title,
-            description: description,
-            estimatedTime: estimatedTime,
-        }
-        courseData[index] = data;
-        res.status(200).json({
-            message: 'Course updated successfully'
-        });
+  path: "/api/course/:id",
+  method: "put",
+  handler: async (req, res) => {
+    const { id } = req.params;
+    const query = { _id: new ObjectId(id) };
+    const db = getDbConnection("courses");
+    const existingCourse = await db.collection("courses").findOne(query);
+    if (existingCourse) {
+      const courseData = req.body;
+      //exclude the _id field from being updated
+      delete courseData._id;
+      const result = await db
+        .collection("courses")
+        .findOneAndUpdate(
+          { _id: new ObjectId(id) },
+          { $set: courseData },
+          { returnOriginal: false }
+        );
+      res.status(200).send(result.value);
+    } else {
+      res.status(404).send("course not found");
     }
+  },
 };
-
